@@ -2,7 +2,7 @@ package models
 
 import "mime/multipart"
 
-type XSLFileInfo struct {
+type XLSXFileInfo struct {
   InputFile multipart.File;
   SheetName string;
 }

@@ -2,8 +2,8 @@ package handlers
 
 import (
   "net/http"
-  . "xslfix/internal/services"
-  . "xslfix/internal/models"
+  . "xlsxfix/internal/services"
+  . "xlsxfix/internal/models"
 )
 
 func XSLHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,12 +21,12 @@ func XSLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  xslFile, _, errFormFile := r.FormFile("file")
+  xlsxFile, _, errFormFile := r.FormFile("file")
 	if errFormFile != nil {
 		http.Error(w, "Unable to read file", http.StatusBadRequest)
 		return
 	}
-	defer xslFile.Close()
+	defer xlsxFile.Close()
 
   sheetName := r.FormValue("sheetName")
 	if sheetName == "" {
@@ -34,12 +34,12 @@ func XSLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  var receivedXSLFileInfo = XSLFileInfo {
-    InputFile: xslFile,
+  var receivedXSLXFileInfo = XLSXFileInfo {
+    InputFile: xlsxFile,
     SheetName: sheetName,
   }
 
-  var updatedFile, err = RemoveDuplicates(&receivedXSLFileInfo)
+  var updatedFile, err = RemoveDuplicates(&receivedXSLXFileInfo)
   if err != nil {
     http.Error(w, "Failed to process file: "+err.Error(), http.StatusBadRequest)
 		return

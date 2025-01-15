@@ -3,21 +3,21 @@ package services
 import (
 	"fmt"
   "bytes"
-	. "xslfix/internal/models"
+	. "xlsxfix/internal/models"
 	"github.com/xuri/excelize/v2"
 )
 
 
-func RemoveDuplicates(xslfile *XSLFileInfo) ([]byte, error) {
+func RemoveDuplicates(xlsxFile *XLSXFileInfo) ([]byte, error) {
 	// Abre o arquivo de entrada
-	f, err := excelize.OpenReader(xslfile.InputFile)
+	f, err := excelize.OpenReader(xlsxFile.InputFile)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open file: %w", err)
 	}
 	defer f.Close()
 
 	// Obtém as linhas da planilha
-	rows, err := f.GetRows(xslfile.SheetName)
+	rows, err := f.GetRows(xlsxFile.SheetName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read lines: %w", err)
 	}
@@ -36,7 +36,7 @@ func RemoveDuplicates(xslfile *XSLFileInfo) ([]byte, error) {
 
 	// Create a new XSL file
 	newFile := excelize.NewFile()
-	index, err := newFile.NewSheet(xslfile.SheetName)
+	index, err := newFile.NewSheet(xlsxFile.SheetName)
 	if err != nil {
 		return nil, fmt.Errorf("Error to create new sheet: %w", err)
 	}
@@ -45,7 +45,7 @@ func RemoveDuplicates(xslfile *XSLFileInfo) ([]byte, error) {
 	for i, row := range filteredRows {
 		for j, cell := range row {
 			cellAddress, _ := excelize.CoordinatesToCellName(j+1, i+1)
-			newFile.SetCellValue(xslfile.SheetName, cellAddress, cell)
+			newFile.SetCellValue(xlsxFile.SheetName, cellAddress, cell)
 		}
 	}
 

@@ -1,3 +1,3 @@
-go build -o ../build/xslfix ../cmd/xslfix
-cd ../build && ./xslfix
+go build -o ../build/xlsxfix/ ../cmd/xlsxfix/
+cd ../build/xlsxfix/ && ./xlsxfix
 
