@@ -1,3 +1,3 @@
-go build -o ../build/build/xslfix ../cmd/xslfix
+go build -o ../build/xslfix ../cmd/xslfix
 cd ../build && ./xslfix
 
