@@ -9,7 +9,7 @@ A item manegemant api.
 ### Request exemple:
 
 ```
-curl -X POST \                                                                            [7]
+curl -X POST \
   -F "file=@./test.xlsx;type=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" \
   -F "sheetName=test" \
   http://localhost:8080/xlsx
