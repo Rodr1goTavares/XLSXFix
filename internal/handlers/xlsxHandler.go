@@ -1,51 +1,73 @@
 package handlers
 
 import (
+  "log"
+  "bytes"
+  "io"
   "net/http"
   . "xlsxfix/internal/services"
   . "xlsxfix/internal/models"
 )
 
+
 func XSLHandler(w http.ResponseWriter, r *http.Request) {
+  if r.Method != http.MethodPost {
+    http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+    return
+  }
 
-  // Verifica se a requisição é do tipo multipart/form-data
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
+  err := r.ParseMultipartForm(10 << 20) // 10 MB limit
+  if err != nil {
+    http.Error(w, "Unable to parse form", http.StatusBadRequest)
+    return
+  }
 
-	// Parse do formulário multipart (o que nos permite acessar o arquivo)
-	errSize := r.ParseMultipartForm(10 << 20) // Limite de 10 MB para o arquivo
-	if errSize != nil {
-		http.Error(w, "Unable to parse form", http.StatusBadRequest)
-		return
-	}
+  xlsxFile, fileHeader, err := r.FormFile("file")
+  if err != nil {
+    http.Error(w, "Unable to read file", http.StatusBadRequest)
+    return
+  }
+  defer xlsxFile.Close()
 
-  xlsxFile, _, errFormFile := r.FormFile("file")
-	if errFormFile != nil {
-		http.Error(w, "Unable to read file", http.StatusBadRequest)
-		return
-	}
-	defer xlsxFile.Close()
+  // Log file information for debugging
+  log.Printf("Received file: %s", fileHeader.Filename)
+  log.Printf("Content-Type: %s", fileHeader.Header.Get("Content-Type"))
+
+  // Ensure file is XLSX by checking MIME type
+  if fileHeader.Header.Get("Content-Type") != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" {
+    http.Error(w, "Invalid file type, expected .xlsx", http.StatusBadRequest)
+    return
+  }
+
+  // Buffer the file content for Excelize to process
+  var buf bytes.Buffer
+  _, err = io.Copy(&buf, xlsxFile)
+  if err != nil {
+    http.Error(w, "Failed to buffer file content", http.StatusInternalServerError)
+    return
+  }
 
   sheetName := r.FormValue("sheetName")
-	if sheetName == "" {
-		http.Error(w, "Missing message", http.StatusBadRequest)
-		return
-	}
+  if sheetName == "" {
+    http.Error(w, "Missing sheet name", http.StatusBadRequest)
+    return
+  }
 
-  var receivedXSLXFileInfo = XLSXFileInfo {
-    InputFile: xlsxFile,
+  var receivedXLSXFileInfo = XLSXFileInfo{
+    InputFile: &buf,
     SheetName: sheetName,
   }
 
-  var updatedFile, err = RemoveDuplicates(&receivedXSLXFileInfo)
+  updatedFile, err := RemoveDuplicates(&receivedXLSXFileInfo)
   if err != nil {
+    log.Printf("Error processing file: %v", err)
     http.Error(w, "Failed to process file: "+err.Error(), http.StatusBadRequest)
-		return
+    return
   }
 
   w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	w.Header().Set("Content-Disposition", "attachment; filename=updated_file.xlsx")
+  w.Header().Set("Content-Disposition", "attachment; filename=updated_file.xlsx")
   w.Write(updatedFile)
 }
+
+

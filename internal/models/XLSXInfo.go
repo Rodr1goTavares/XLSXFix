@@ -1,8 +1,10 @@
 package models
 
-import "mime/multipart"
+import (
+	"bytes"
+)
 
 type XLSXFileInfo struct {
-  InputFile multipart.File;
+  InputFile *bytes.Buffer;
   SheetName string;
 }
